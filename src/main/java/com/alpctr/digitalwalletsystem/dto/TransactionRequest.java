@@ -18,8 +18,8 @@ public class TransactionRequest {
     @NotNull(message = "Source type is required")
     private OppositePartyType sourceType;
 
-    @NotBlank(message = "Source cannot be blank")
-    private String source;
+   /* @NotBlank(message = "Source cannot be blank")
+    private String source;*/
 
 
 
@@ -47,11 +47,4 @@ public class TransactionRequest {
         this.sourceType = sourceType;
     }
 
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
 }

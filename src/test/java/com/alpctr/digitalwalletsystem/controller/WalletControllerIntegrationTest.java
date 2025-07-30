@@ -1,0 +1,159 @@
+package com.alpctr.digitalwalletsystem.controller;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import com.alpctr.digitalwalletsystem.dto.TransactionRequest;
+import com.alpctr.digitalwalletsystem.dto.WalletRequest;
+import com.alpctr.digitalwalletsystem.dto.WithdrawRequest;
+import com.alpctr.digitalwalletsystem.model.Transaction;
+import com.alpctr.digitalwalletsystem.model.Wallet;
+import com.alpctr.enums.Currency;
+import com.alpctr.enums.OppositePartyType;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class WalletControllerIntegrationTest {
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    private String baseUrl;
+
+    @BeforeEach
+    void setup() {
+        baseUrl = "http://localhost:" + port + "/api";
+    }
+
+    @Test
+    void testCreateWalletAndListWallets() {
+    	
+        // Prepare wallet request
+        WalletRequest walletRequest = new WalletRequest();
+        walletRequest.setCustomerId(1L);  // Use a valid customer ID in your test DB
+        walletRequest.setWalletName("TestWallet");
+        walletRequest.setCurrency(Currency.EUR);
+        walletRequest.setActiveForShopping(true);
+        walletRequest.setActiveForWithdraw(true);
+
+        // Create Wallet
+        ResponseEntity<Wallet> createResponse = restTemplate.postForEntity(
+            baseUrl + "/wallets", walletRequest, Wallet.class);
+
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Wallet createdWallet = createResponse.getBody();
+        assertThat(createdWallet).isNotNull();
+        assertThat(createdWallet.getWalletName()).isEqualTo("TestWallet");
+
+        // List Wallets by customerId
+        ResponseEntity<Wallet[]> listResponse = restTemplate.getForEntity(
+            baseUrl + "/wallets?customerId=1", Wallet[].class);
+
+        assertThat(listResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Wallet[] wallets = listResponse.getBody();
+        assertThat(wallets).isNotNull();
+        assertThat(wallets.length).isGreaterThan(0);
+        
+        TransactionRequest depositRequest = new TransactionRequest();
+        depositRequest.setWalletId(wallets[0].getId());
+        depositRequest.setAmount(BigDecimal.valueOf(100.0));
+        depositRequest.setSourceType(OppositePartyType.IBAN);
+
+        ResponseEntity<Transaction> depositResponse = restTemplate.postForEntity(
+            baseUrl + "/deposit", depositRequest, Transaction.class);
+
+        assertThat(depositResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Transaction transaction = depositResponse.getBody();
+        assertThat(transaction).isNotNull();
+        assertThat(transaction.getAmount()).isEqualTo(BigDecimal.valueOf(100.0));
+
+        // List transactions for the wallet
+        ResponseEntity<Transaction[]> listTxResponse = restTemplate.getForEntity(
+            baseUrl + "/transactions?walletId=" + wallets[0].getId(), Transaction[].class);
+
+        assertThat(listTxResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Transaction[] transactions = listTxResponse.getBody();
+        assertThat(transactions).isNotNull();
+        assertThat(transactions.length).isGreaterThan(0);
+    }
+
+    
+    @Test
+    void testWithdrawAndListTransactions() {
+        // Assume walletId 1L exists; create or adjust as needed
+        Long walletId = 1L;
+
+        WithdrawRequest withdrawRequest = new WithdrawRequest();
+        withdrawRequest.setWalletId(walletId);
+        withdrawRequest.setAmount(BigDecimal.valueOf(50.0));
+        withdrawRequest.setDestinationType(OppositePartyType.IBAN);
+        withdrawRequest.setDestination("TR330006100519786457841326"); // example IBAN
+
+        // Withdraw request
+        ResponseEntity<Transaction> withdrawResponse = restTemplate.postForEntity(
+            baseUrl + "/withdraw", withdrawRequest, Transaction.class);
+
+        assertThat(withdrawResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Transaction withdrawTransaction = withdrawResponse.getBody();
+        assertThat(withdrawTransaction).isNotNull();
+        assertThat(withdrawTransaction.getAmount()).isEqualTo(BigDecimal.valueOf(50.0));
+        assertThat(withdrawTransaction.getWallet().getId()).isEqualTo(walletId);
+
+        // List transactions for the wallet
+        ResponseEntity<Transaction[]> listTxResponse = restTemplate.getForEntity(
+            baseUrl + "/transactions?walletId=" + walletId, Transaction[].class);
+
+        assertThat(listTxResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Transaction[] transactions = listTxResponse.getBody();
+        assertThat(transactions).isNotNull();
+        assertThat(transactions.length).isGreaterThan(0);
+
+        // Optional: Check if withdrawal transaction exists in the list
+        boolean withdrawalFound = Arrays.stream(transactions)
+            .anyMatch(tx -> tx.getId().equals(withdrawTransaction.getId()));
+        assertThat(withdrawalFound).isTrue();
+    }
+    
+    
+    @Test
+    void testDepositAndListTransactions() {
+        // First, create a wallet (or assume walletId 1 exists)
+        Long walletId = 1L;
+
+
+        TransactionRequest depositRequest = new TransactionRequest();
+        depositRequest.setWalletId(walletId);
+        depositRequest.setAmount(BigDecimal.valueOf(100.0));
+        depositRequest.setSourceType(OppositePartyType.IBAN);
+
+        ResponseEntity<Transaction> depositResponse = restTemplate.postForEntity(
+            baseUrl + "/deposit", depositRequest, Transaction.class);
+
+        assertThat(depositResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Transaction transaction = depositResponse.getBody();
+        assertThat(transaction).isNotNull();
+        assertThat(transaction.getAmount()).isEqualTo(BigDecimal.valueOf(100.0));
+
+        // List transactions for the wallet
+        ResponseEntity<Transaction[]> listTxResponse = restTemplate.getForEntity(
+            baseUrl + "/transactions?walletId=" + walletId, Transaction[].class);
+
+        assertThat(listTxResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Transaction[] transactions = listTxResponse.getBody();
+        assertThat(transactions).isNotNull();
+        assertThat(transactions.length).isGreaterThan(0);
+    }
+}

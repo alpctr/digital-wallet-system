@@ -50,7 +50,7 @@ public class WalletService {
     }
 
     @Transactional
-    public Transaction deposit(Long walletId, BigDecimal amount, OppositePartyType type, String source) {
+    public Transaction deposit(Long walletId, BigDecimal amount, OppositePartyType type) {
         Wallet wallet = walletRepo.findById(walletId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
@@ -59,7 +59,6 @@ public class WalletService {
         txn.setAmount(amount);
         txn.setType(TransactionType.DEPOSIT);
         txn.setOppositeType(type);
-        txn.setOppositeParty(source);
 
         if (amount.compareTo(BigDecimal.valueOf(THRESHOLD)) > 0) {
             txn.setStatus(TransactionStatus.PENDING);
