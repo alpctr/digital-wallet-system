@@ -51,7 +51,8 @@ public class WalletController {
         Transaction transaction = walletService.deposit(
                 request.getWalletId(),
                 request.getAmount(),
-                request.getSourceType()
+                request.getSourceType(),
+                request.getSource()
         );
         return ResponseEntity.ok(transaction);
     }
