@@ -1,4 +1,4 @@
-package com.alpctr.digital_wallet_system;
+package com.alpctr.digitalwalletsystem;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -16,9 +16,6 @@ import jakarta.persistence.ManyToOne;
 @Entity
 public class Transaction {
 
-	public Transaction() {
-		// TODO Auto-generated constructor stub
-	}
 	
     @Id 
     @GeneratedValue

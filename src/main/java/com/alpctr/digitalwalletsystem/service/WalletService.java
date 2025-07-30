@@ -20,11 +20,9 @@ import com.alpctr.enums.TransactionType;
 
 @Service
 public class WalletService {
-
-	public WalletService() {
-		// TODO Auto-generated constructor stub
-	}
 	
+	private static final int THRESHOLD = 1000;
+
     @Autowired
     private WalletRepository walletRepo;
 
@@ -63,7 +61,7 @@ public class WalletService {
         txn.setOppositeType(type);
         txn.setOppositeParty(source);
 
-        if (amount.compareTo(BigDecimal.valueOf(1000)) > 0) {
+        if (amount.compareTo(BigDecimal.valueOf(THRESHOLD)) > 0) {
             txn.setStatus(TransactionStatus.PENDING);
             wallet.setBalance(wallet.getBalance().add(amount));
         } else {
@@ -96,7 +94,7 @@ public class WalletService {
         txn.setOppositeType(type);
         txn.setOppositeParty(dest);
 
-        if (amount.compareTo(BigDecimal.valueOf(1000)) > 0) {
+        if (amount.compareTo(BigDecimal.valueOf(THRESHOLD)) > 0) {
             txn.setStatus(TransactionStatus.PENDING);
             wallet.setUsableBalance(wallet.getUsableBalance().subtract(amount));
         } else {

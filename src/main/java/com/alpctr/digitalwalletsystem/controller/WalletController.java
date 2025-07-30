@@ -1,6 +1,5 @@
 package com.alpctr.digitalwalletsystem.controller;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alpctr.digitalwalletsystem.dto.ApproveTransactionRequest;
+import com.alpctr.digitalwalletsystem.dto.TransactionRequest;
 import com.alpctr.digitalwalletsystem.dto.WalletRequest;
+import com.alpctr.digitalwalletsystem.dto.WithdrawRequest;
 import com.alpctr.digitalwalletsystem.model.Transaction;
 import com.alpctr.digitalwalletsystem.model.Wallet;
 import com.alpctr.digitalwalletsystem.service.WalletService;
-import com.alpctr.enums.OppositePartyType;
-import com.alpctr.enums.TransactionStatus;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -25,20 +26,7 @@ public class WalletController {
 
     @Autowired
     private WalletService walletService;
-/*
-    @PostMapping("/wallets")
-    public ResponseEntity<Wallet> createWallet(
-            @RequestParam Long customerId,
-            @RequestParam String walletName,
-            @RequestParam Currency currency,
-            @RequestParam boolean activeForShopping,
-            @RequestParam boolean activeForWithdraw
-    ) {
-        Wallet wallet = walletService.createWallet(customerId, walletName, currency, activeForShopping, activeForWithdraw);
-        return ResponseEntity.ok(wallet);
-    }
-*/   
-    
+
     @PostMapping("/wallets")
     public ResponseEntity<Wallet> createWallet(@RequestBody WalletRequest request) {
         Wallet wallet = walletService.createWallet(
@@ -57,24 +45,28 @@ public class WalletController {
         return ResponseEntity.ok(walletService.listWallets(customerId));
     }
 
+    
     @PostMapping("/deposit")
-    public ResponseEntity<Transaction> deposit(
-            @RequestParam Long walletId,
-            @RequestParam BigDecimal amount,
-            @RequestParam OppositePartyType sourceType,
-            @RequestParam String source
-    ) {
-        return ResponseEntity.ok(walletService.deposit(walletId, amount, sourceType, source));
+    public ResponseEntity<Transaction> deposit(@Valid @RequestBody TransactionRequest request) {
+        Transaction transaction = walletService.deposit(
+                request.getWalletId(),
+                request.getAmount(),
+                request.getSourceType(),
+                request.getSource()
+        );
+        return ResponseEntity.ok(transaction);
     }
 
+
     @PostMapping("/withdraw")
-    public ResponseEntity<Transaction> withdraw(
-            @RequestParam Long walletId,
-            @RequestParam BigDecimal amount,
-            @RequestParam OppositePartyType destinationType,
-            @RequestParam String destination
-    ) {
-        return ResponseEntity.ok(walletService.withdraw(walletId, amount, destinationType, destination));
+    public ResponseEntity<Transaction> withdraw(@Valid @RequestBody WithdrawRequest request) {
+        Transaction transaction = walletService.withdraw(
+                request.getWalletId(),
+                request.getAmount(),
+                request.getDestinationType(),
+                request.getDestination()
+        );
+        return ResponseEntity.ok(transaction);
     }
 
     @GetMapping("/transactions")
@@ -82,13 +74,16 @@ public class WalletController {
         return ResponseEntity.ok(walletService.listTransactions(walletId));
     }
 
+    
     @PostMapping("/approve")
-    public ResponseEntity<Transaction> approveTransaction(
-            @RequestParam Long transactionId,
-            @RequestParam TransactionStatus status
-    ) {
-        return ResponseEntity.ok(walletService.approveOrDenyTransaction(transactionId, status));
+    public ResponseEntity<Transaction> approveTransaction(@Valid @RequestBody ApproveTransactionRequest request) {
+        Transaction transaction = walletService.approveOrDenyTransaction(
+                request.getTransactionId(),
+                request.getStatus()
+        );
+        return ResponseEntity.ok(transaction);
     }
-}
+    
+    }
 
 
