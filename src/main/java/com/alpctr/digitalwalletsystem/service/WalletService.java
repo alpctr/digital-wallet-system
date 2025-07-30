@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alpctr.digitalwalletsystem.model.Customer;
@@ -17,6 +18,7 @@ import com.alpctr.enums.OppositePartyType;
 import com.alpctr.enums.TransactionStatus;
 import com.alpctr.enums.TransactionType;
 
+@Service
 public class WalletService {
 
 	public WalletService() {
