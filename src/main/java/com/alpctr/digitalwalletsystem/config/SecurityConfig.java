@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .build();
 
         UserDetails customer = User.builder()
-                .username("12345678901") // Customer TCKN
+                .username("56789012345") // Customer TCKN
                 .password(passwordEncoder().encode("password"))
                 .roles("CUSTOMER")
                 .build();

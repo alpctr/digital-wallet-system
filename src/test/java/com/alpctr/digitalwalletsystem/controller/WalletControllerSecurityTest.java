@@ -32,7 +32,7 @@ public class WalletControllerSecurityTest {
     @WithMockUser(username = "56789012345", roles = {"CUSTOMER"})
     void customerCanAccessOwnWallet() throws Exception {
         mockMvc.perform(get("/api/wallets")
-                .param("customerId", "5"))  // Must belong to TCKN=12345678901 in DB
+                .param("customerId", "5"))  // Must belong to TCKN=56789012345 in DB
                 .andExpect(status().isOk());
     }
 

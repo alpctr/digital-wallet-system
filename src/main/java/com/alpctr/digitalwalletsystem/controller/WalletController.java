@@ -46,8 +46,7 @@ public class WalletController {
         return ResponseEntity.ok(walletService.listWallets(customerId));
     }
 
-    // Deposit allowed for both roles
-    @PreAuthorize("hasAnyRole('EMPLOYEE','CUSTOMER')")
+    @PreAuthorize("hasRole('EMPLOYEE') or (hasRole('CUSTOMER') and @customerRepository.findById(#customerId).get().tckn == authentication.name)")
     @PostMapping("/deposit")
     public ResponseEntity<Transaction> deposit(@Valid @RequestBody TransactionRequest request) {
         Transaction transaction = walletService.deposit(
@@ -59,8 +58,7 @@ public class WalletController {
         return ResponseEntity.ok(transaction);
     }
 
-    // Withdraw allowed for both roles
-    @PreAuthorize("hasAnyRole('EMPLOYEE','CUSTOMER')")
+    @PreAuthorize("hasRole('EMPLOYEE') or (hasRole('CUSTOMER') and @customerRepository.findById(#customerId).get().tckn == authentication.name)")
     @PostMapping("/withdraw")
     public ResponseEntity<Transaction> withdraw(@Valid @RequestBody WithdrawRequest request) {
         Transaction transaction = walletService.withdraw(
@@ -72,8 +70,7 @@ public class WalletController {
         return ResponseEntity.ok(transaction);
     }
 
-    // Both roles can view transactions
-    @PreAuthorize("hasAnyRole('EMPLOYEE','CUSTOMER')")
+    @PreAuthorize("hasRole('EMPLOYEE') or (hasRole('CUSTOMER') and @customerRepository.findById(#customerId).get().tckn == authentication.name)")
     @GetMapping("/transactions")
     public ResponseEntity<List<Transaction>> listTransactions(@RequestParam Long walletId) {
         return ResponseEntity.ok(walletService.listTransactions(walletId));

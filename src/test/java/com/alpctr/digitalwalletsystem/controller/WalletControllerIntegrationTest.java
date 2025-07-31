@@ -210,7 +210,7 @@ public class WalletControllerIntegrationTest {
         assertThat(transactions).isNotNull();
         assertThat(transactions.length).isGreaterThan(0);
 
-        // Optional: Check if withdrawal transaction exists in the list
+        // Check if withdrawal transaction exists in the list
         boolean withdrawalFound = Arrays.stream(transactions)
             .anyMatch(tx -> tx.getId().equals(withdrawTransaction.getId()));
         assertThat(withdrawalFound).isTrue();
