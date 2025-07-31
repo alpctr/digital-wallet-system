@@ -4,20 +4,15 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
-import com.alpctr.digitalwalletsystem.dto.ApproveTransactionRequest;
-import com.alpctr.digitalwalletsystem.dto.TransactionRequest;
-import com.alpctr.digitalwalletsystem.dto.WalletRequest;
-import com.alpctr.digitalwalletsystem.dto.WithdrawRequest;
+import com.alpctr.digitalwalletsystem.dto.*;
 import com.alpctr.digitalwalletsystem.model.Transaction;
 import com.alpctr.digitalwalletsystem.model.Wallet;
+import com.alpctr.digitalwalletsystem.repository.CustomerRepository;
 import com.alpctr.digitalwalletsystem.service.WalletService;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -27,6 +22,11 @@ public class WalletController {
     @Autowired
     private WalletService walletService;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    // Employees can create wallets
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/wallets")
     public ResponseEntity<Wallet> createWallet(@RequestBody WalletRequest request) {
         Wallet wallet = walletService.createWallet(
@@ -38,14 +38,16 @@ public class WalletController {
         );
         return ResponseEntity.ok(wallet);
     }
-    
 
+    // Employees can view any wallets, customers only their own (TCKN check)
+    @PreAuthorize("hasRole('EMPLOYEE') or (hasRole('CUSTOMER') and @customerRepository.findById(#customerId).get().tckn == authentication.name)")
     @GetMapping("/wallets")
     public ResponseEntity<List<Wallet>> listWallets(@RequestParam Long customerId) {
         return ResponseEntity.ok(walletService.listWallets(customerId));
     }
 
-    
+    // Deposit allowed for both roles
+    @PreAuthorize("hasAnyRole('EMPLOYEE','CUSTOMER')")
     @PostMapping("/deposit")
     public ResponseEntity<Transaction> deposit(@Valid @RequestBody TransactionRequest request) {
         Transaction transaction = walletService.deposit(
@@ -57,7 +59,8 @@ public class WalletController {
         return ResponseEntity.ok(transaction);
     }
 
-
+    // Withdraw allowed for both roles
+    @PreAuthorize("hasAnyRole('EMPLOYEE','CUSTOMER')")
     @PostMapping("/withdraw")
     public ResponseEntity<Transaction> withdraw(@Valid @RequestBody WithdrawRequest request) {
         Transaction transaction = walletService.withdraw(
@@ -69,12 +72,15 @@ public class WalletController {
         return ResponseEntity.ok(transaction);
     }
 
+    // Both roles can view transactions
+    @PreAuthorize("hasAnyRole('EMPLOYEE','CUSTOMER')")
     @GetMapping("/transactions")
     public ResponseEntity<List<Transaction>> listTransactions(@RequestParam Long walletId) {
         return ResponseEntity.ok(walletService.listTransactions(walletId));
     }
 
-    
+    // Only employees can approve transactions
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/approve")
     public ResponseEntity<Transaction> approveTransaction(@Valid @RequestBody ApproveTransactionRequest request) {
         Transaction transaction = walletService.approveOrDenyTransaction(
@@ -83,7 +89,4 @@ public class WalletController {
         );
         return ResponseEntity.ok(transaction);
     }
-    
-    }
-
-
+}

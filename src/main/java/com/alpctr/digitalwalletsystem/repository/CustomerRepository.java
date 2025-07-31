@@ -9,5 +9,5 @@ import com.alpctr.digitalwalletsystem.model.Customer;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
-    Optional<Customer> findByTckn(String tckn);
+    Optional<Customer> findById(Long id);
 }
