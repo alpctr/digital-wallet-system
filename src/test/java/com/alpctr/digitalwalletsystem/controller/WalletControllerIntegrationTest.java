@@ -41,6 +41,8 @@ public class WalletControllerIntegrationTest {
     @Test
     void testCreateWalletAndListWallets() {
     	
+    	TestRestTemplate employeeClient = restTemplate.withBasicAuth("00000000000", "password");
+    	
         // Prepare wallet request
         WalletRequest walletRequest = new WalletRequest();
         walletRequest.setCustomerId(1L);  // Use a valid customer ID in your test DB
@@ -50,7 +52,7 @@ public class WalletControllerIntegrationTest {
         walletRequest.setActiveForWithdraw(true);
 
         // Create Wallet
-        ResponseEntity<Wallet> createResponse = restTemplate.postForEntity(
+        ResponseEntity<Wallet> createResponse = employeeClient.postForEntity(
             baseUrl + "/wallets", walletRequest, Wallet.class);
 
         assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -59,7 +61,7 @@ public class WalletControllerIntegrationTest {
         assertThat(createdWallet.getWalletName()).isEqualTo("TestWallet");
 
         // List Wallets by customerId
-        ResponseEntity<Wallet[]> listResponse = restTemplate.getForEntity(
+        ResponseEntity<Wallet[]> listResponse = employeeClient.getForEntity(
             baseUrl + "/wallets?customerId=1", Wallet[].class);
 
         assertThat(listResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -71,6 +73,8 @@ public class WalletControllerIntegrationTest {
     @Test
     void testDepositAndListTransactions() {
     	
+    	TestRestTemplate employeeClient = restTemplate.withBasicAuth("00000000000", "password");
+    	
         // Prepare wallet request
         WalletRequest walletRequest = new WalletRequest();
         walletRequest.setCustomerId(1L);
@@ -80,7 +84,7 @@ public class WalletControllerIntegrationTest {
         walletRequest.setActiveForWithdraw(true);
 
         // Create Wallet
-        ResponseEntity<Wallet> createResponse = restTemplate.postForEntity(
+        ResponseEntity<Wallet> createResponse = employeeClient.postForEntity(
             baseUrl + "/wallets", walletRequest, Wallet.class);
 
         assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -89,7 +93,7 @@ public class WalletControllerIntegrationTest {
         assertThat(createdWallet.getWalletName()).isEqualTo("TestWallet");
 
         // List Wallets by customerId
-        ResponseEntity<Wallet[]> listResponse = restTemplate.getForEntity(
+        ResponseEntity<Wallet[]> listResponse = employeeClient.getForEntity(
             baseUrl + "/wallets?customerId=1", Wallet[].class);
 
         assertThat(listResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -104,7 +108,7 @@ public class WalletControllerIntegrationTest {
         depositRequest.setSourceType(OppositePartyType.IBAN);
         depositRequest.setSource("TR330006100519786457841326");
 
-        ResponseEntity<Transaction> depositResponse = restTemplate.postForEntity(
+        ResponseEntity<Transaction> depositResponse = employeeClient.postForEntity(
             baseUrl + "/deposit", depositRequest, Transaction.class);
 
         assertThat(depositResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -113,7 +117,7 @@ public class WalletControllerIntegrationTest {
         assertThat(transaction.getAmount()).isEqualTo(BigDecimal.valueOf(100.0));
 
         // List transactions for the wallet
-        ResponseEntity<Transaction[]> listTxResponse = restTemplate.getForEntity(
+        ResponseEntity<Transaction[]> listTxResponse = employeeClient.getForEntity(
             baseUrl + "/transactions?walletId=" + wallets[0].getId(), Transaction[].class);
 
         assertThat(listTxResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -125,6 +129,9 @@ public class WalletControllerIntegrationTest {
     
     @Test
     void testWithdrawAndListTransactions() {
+    	
+    	TestRestTemplate employeeClient = restTemplate.withBasicAuth("00000000000", "password");
+    	
         // Assume walletId 1L exists; create or adjust as needed
         Long walletId = 1L;
         
@@ -137,7 +144,7 @@ public class WalletControllerIntegrationTest {
         walletRequest.setActiveForWithdraw(true);
 
         // Create Wallet
-        ResponseEntity<Wallet> createResponse = restTemplate.postForEntity(
+        ResponseEntity<Wallet> createResponse = employeeClient.postForEntity(
             baseUrl + "/wallets", walletRequest, Wallet.class);
 
         assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -146,7 +153,7 @@ public class WalletControllerIntegrationTest {
         assertThat(createdWallet.getWalletName()).isEqualTo("TestWallet");
 
         // List Wallets by customerId
-        ResponseEntity<Wallet[]> listResponse = restTemplate.getForEntity(
+        ResponseEntity<Wallet[]> listResponse = employeeClient.getForEntity(
             baseUrl + "/wallets?customerId=1", Wallet[].class);
 
         assertThat(listResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -161,7 +168,7 @@ public class WalletControllerIntegrationTest {
         depositRequest.setSourceType(OppositePartyType.IBAN);
         depositRequest.setSource("TR330006100519786457841326");
 
-        ResponseEntity<Transaction> depositResponse = restTemplate.postForEntity(
+        ResponseEntity<Transaction> depositResponse = employeeClient.postForEntity(
             baseUrl + "/deposit", depositRequest, Transaction.class);
 
         assertThat(depositResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -169,7 +176,7 @@ public class WalletControllerIntegrationTest {
         assertThat(transaction).isNotNull();
         assertThat(transaction.getAmount()).isEqualTo(BigDecimal.valueOf(750));
         
-        ResponseEntity<Transaction> depositResponse2 = restTemplate.postForEntity(
+        ResponseEntity<Transaction> depositResponse2 = employeeClient.postForEntity(
                 baseUrl + "/deposit", depositRequest, Transaction.class);
 
         assertThat(depositResponse2.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -185,7 +192,7 @@ public class WalletControllerIntegrationTest {
         withdrawRequest.setDestination("TR330006100519786457841326"); // example IBAN
 
         // Withdraw request
-        ResponseEntity<Transaction> withdrawResponse = restTemplate.postForEntity(
+        ResponseEntity<Transaction> withdrawResponse = employeeClient.postForEntity(
             baseUrl + "/withdraw", withdrawRequest, Transaction.class);
 
         assertThat(withdrawResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -195,7 +202,7 @@ public class WalletControllerIntegrationTest {
         assertThat(withdrawTransaction.getWallet().getId()).isEqualTo(walletId);
 
         // List transactions for the wallet
-        ResponseEntity<Transaction[]> listTxResponse = restTemplate.getForEntity(
+        ResponseEntity<Transaction[]> listTxResponse = employeeClient.getForEntity(
             baseUrl + "/transactions?walletId=" + walletId, Transaction[].class);
 
         assertThat(listTxResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
